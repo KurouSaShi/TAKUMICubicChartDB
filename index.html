@@ -208,6 +208,7 @@
             align-items: center;
             transition: all 0.3s ease;
             position: relative;
+            cursor: pointer;
         }
 
         .page-item:last-child {
@@ -299,6 +300,12 @@
             box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
         }
 
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
         /* レスポンシブデザイン */
         @media (max-width: 768px) {
             .container {
@@ -341,29 +348,13 @@
         </div>
 
         <div class="main-content" id="mainContent">
-            <!-- コンテンツがここに表示されます -->
+            <div class="loading">データを読み込み中...</div>
         </div>
     </div>
 
     <script>
-        // サンプルデータ
-        const pages = [
-            { title: "Red Zone", lvTag: 13, difficultyTag: "MAS", url: "#" },
-            { title: "Fascination MAXX", lvTag: 14, difficultyTag: "MAS", url: "#" },
-            { title: "EGOISM 440", lvTag: 12, difficultyTag: "MAS", url: "#" },
-            { title: "Pluto", lvTag: 13, difficultyTag: "INS", url: "#" },
-            { title: "Saturn", lvTag: 11, difficultyTag: "RAV", url: "#" },
-            { title: "Moon", lvTag: 9, difficultyTag: "RAV", url: "#" },
-            { title: "Earth", lvTag: 10, difficultyTag: "INS", url: "#" },
-            { title: "Venus", lvTag: 8, difficultyTag: "RAV", url: "#" },
-            { title: "Mars", lvTag: 12, difficultyTag: "INS", url: "#" },
-            { title: "Jupiter", lvTag: 15, difficultyTag: "MAS", url: "#" },
-            { title: "Mercury", lvTag: 7, difficultyTag: "RAV", url: "#" },
-            { title: "Neptune", lvTag: 14, difficultyTag: "INS", url: "#" },
-            { title: "Uranus", lvTag: 13, difficultyTag: "MAS", url: "#" },
-
-        ];
-
+        // データを外部JSONから読み込み
+        let pages = [];
         let sortByName = false;
         let currentSearch = '';
 
@@ -372,6 +363,38 @@
             'INS': 'white',
             'MAS': 'purple'
         };
+
+        // JSONファイルを読み込む関数
+        async function loadPagesData() {
+            try {
+                const response = await fetch('data/pages.json');
+                const data = await response.json();
+                pages = data.pages.map(page => ({
+                    ...page,
+                    url: `pages/${page.filename}`
+                }));
+                updateDisplay();
+            } catch (error) {
+                console.error('JSONファイルの読み込みに失敗しました:', error);
+                // フォールバック: 埋め込みデータを使用
+                pages = [
+                    { title: "Red Zone", lvTag: 13, difficultyTag: "MAS", url: "#", filename: "RedZone_MAS_13.html" },
+                    { title: "Fascination MAXX", lvTag: 14, difficultyTag: "MAS", url: "#", filename: "FascinationMAXX_MAS_14.html" },
+                    { title: "EGOISM 440", lvTag: 12, difficultyTag: "MAS", url: "#", filename: "EGOISM440_MAS_12.html" },
+                    { title: "Pluto", lvTag: 13, difficultyTag: "INS", url: "#", filename: "Pluto_INS_13.html" },
+                    { title: "Saturn", lvTag: 11, difficultyTag: "RAV", url: "#", filename: "Saturn_RAV_11.html" },
+                    { title: "Moon", lvTag: 9, difficultyTag: "RAV", url: "#", filename: "Moon_RAV_9.html" },
+                    { title: "Earth", lvTag: 10, difficultyTag: "INS", url: "#", filename: "Earth_INS_10.html" },
+                    { title: "Venus", lvTag: 8, difficultyTag: "RAV", url: "#", filename: "Venus_RAV_8.html" },
+                    { title: "Mars", lvTag: 12, difficultyTag: "INS", url: "#", filename: "Mars_INS_12.html" },
+                    { title: "Jupiter", lvTag: 15, difficultyTag: "MAS", url: "#", filename: "Jupiter_MAS_15.html" },
+                    { title: "Mercury", lvTag: 7, difficultyTag: "RAV", url: "#", filename: "Mercury_RAV_7.html" },
+                    { title: "Neptune", lvTag: 14, difficultyTag: "INS", url: "#", filename: "Neptune_INS_14.html" },
+                    { title: "Uranus", lvTag: 13, difficultyTag: "MAS", url: "#", filename: "Uranus_MAS_13.html" }
+                ];
+                updateDisplay();
+            }
+        }
 
         function formatLevel(level) {
             if (level >= 13) {
@@ -388,7 +411,7 @@
 
         function createPageElement(page) {
             return `
-                <div class="page-item">
+                <div class="page-item" onclick="window.open('${page.url}', '_blank')">
                     <span class="page-title">${page.title}</span>
                     <div class="page-tags">
                         ${createTagElement(page.lvTag, page.difficultyTag)}
@@ -528,8 +551,8 @@
             }
         });
 
-        // 初期表示
-        updateDisplay();
+        // 初期表示（JSONデータ読み込み後）
+        loadPagesData();
     </script>
 </body>
 </html>
