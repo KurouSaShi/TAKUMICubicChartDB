@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>譜面倉庫</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 30px;
+            border-radius: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .app-title {
+            text-align: center;
+            font-size: 2.5rem;
+            font-weight: 800;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 30px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .search-container {
+            margin-bottom: 20px;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 16px 24px;
+            font-size: 18px;
+            border: 2px solid rgba(102, 126, 234, 0.3);
+            border-radius: 50px;
+            background: rgba(255, 255, 255, 0.9);
+            transition: all 0.3s ease;
+            outline: none;
+        }
+
+        .search-input:focus {
+            border-color: #667eea;
+            background: white;
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .controls {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .sort-switch {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            background: rgba(255, 255, 255, 0.8);
+            padding: 12px 20px;
+            border-radius: 50px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .switch {
+            position: relative;
+            width: 60px;
+            height: 30px;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .switch::after {
+            content: '';
+            position: absolute;
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            background: white;
+            top: 2px;
+            left: 2px;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+        }
+
+        .switch.active::after {
+            left: 32px;
+        }
+
+        .main-content {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .accordion-item {
+            border-bottom: 1px solid rgba(102, 126, 234, 0.1);
+        }
+
+        .accordion-item:last-child {
+            border-bottom: none;
+        }
+
+        .accordion-header {
+            padding: 20px 30px;
+            background: linear-gradient(90deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
+            cursor: pointer;
+            user-select: none;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .accordion-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+            transition: left 0.6s;
+        }
+
+        .accordion-header:hover {
+            background: linear-gradient(90deg, rgba(102, 126, 234, 0.2), rgba(118, 75, 162, 0.2));
+            transform: translateY(-2px);
+        }
+
+        .accordion-header:hover::before {
+            left: 100%;
+        }
+
+        .accordion-title {
+            font-weight: 700;
+            font-size: 18px;
+            color: #333;
+        }
+
+        .accordion-count {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            box-shadow: 0 4px 8px rgba(102, 126, 234, 0.3);
+        }
+
+        .accordion-content {
+            display: none;
+            background: rgba(255, 255, 255, 0.5);
+        }
+
+        .accordion-content.active {
+            display: block;
+            animation: slideDown 0.3s ease;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                max-height: 0;
+            }
+            to {
+                opacity: 1;
+                max-height: 1000px;
+            }
+        }
+
+        .page-item {
+            padding: 16px 30px;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .page-item:last-child {
+            border-bottom: none;
+        }
+
+        .page-item:hover {
+            background: rgba(102, 126, 234, 0.1);
+            transform: translateX(10px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .page-title {
+            font-weight: 600;
+            font-size: 16px;
+            color: #333;
+        }
+
+        .page-tags {
+            display: flex;
+            gap: 10px;
+        }
+
+        .tag {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+            color: white;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+            transition: transform 0.2s ease;
+        }
+
+        .tag:hover {
+            transform: scale(1.1);
+        }
+
+        .tag.red {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a52);
+        }
+
+        .tag.white {
+            background: linear-gradient(45deg, #6c757d, #495057);
+        }
+
+        .tag.purple {
+            background: linear-gradient(45deg, #9c88ff, #7c69ef);
+        }
+
+        .search-results {
+            padding: 30px;
+        }
+
+        .search-results h3 {
+            margin-top: 0;
+            margin-bottom: 20px;
+            color: #333;
+            font-size: 24px;
+            font-weight: 700;
+        }
+
+        .no-results {
+            text-align: center;
+            color: #666;
+            padding: 60px 30px;
+        }
+
+        .no-results p {
+            font-size: 18px;
+            margin-bottom: 20px;
+        }
+
+        .clear-search {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+
+        .clear-search:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
+        }
+
+        /* レスポンシブデザイン */
+        @media (max-width: 768px) {
+            .container {
+                padding: 0 10px;
+            }
+            
+            .header {
+                padding: 20px;
+                margin-bottom: 20px;
+            }
+            
+            .app-title {
+                font-size: 2rem;
+            }
+            
+            .accordion-header, .page-item {
+                padding: 15px 20px;
+            }
+            
+            .controls {
+                flex-direction: column;
+                gap: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1 class="app-title">TAKUMI³譜面倉庫</h1>
+            <div class="search-container">
+                <input type="text" class="search-input" placeholder="楽曲名を検索..." id="searchInput">
+            </div>
+            <div class="controls">
+                <div class="sort-switch">
+                    <span id="sortLabel">タグ別</span>
+                    <div class="switch" id="sortSwitch"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="main-content" id="mainContent">
+            <!-- コンテンツがここに表示されます -->
+        </div>
+    </div>
+
+    <script>
+        // サンプルデータ
+        const pages = [
+            { title: "Red Zone", lvTag: 13, difficultyTag: "MAS", url: "#" },
+            { title: "Fascination MAXX", lvTag: 14, difficultyTag: "MAS", url: "#" },
+            { title: "EGOISM 440", lvTag: 12, difficultyTag: "MAS", url: "#" },
+            { title: "Pluto", lvTag: 13, difficultyTag: "INS", url: "#" },
+            { title: "Saturn", lvTag: 11, difficultyTag: "RAV", url: "#" },
+            { title: "Moon", lvTag: 9, difficultyTag: "RAV", url: "#" },
+            { title: "Earth", lvTag: 10, difficultyTag: "INS", url: "#" },
+            { title: "Venus", lvTag: 8, difficultyTag: "RAV", url: "#" },
+            { title: "Mars", lvTag: 12, difficultyTag: "INS", url: "#" },
+            { title: "Jupiter", lvTag: 15, difficultyTag: "MAS", url: "#" },
+            { title: "Mercury", lvTag: 7, difficultyTag: "RAV", url: "#" },
+            { title: "Neptune", lvTag: 14, difficultyTag: "INS", url: "#" },
+            { title: "Uranus", lvTag: 13, difficultyTag: "MAS", url: "#" },
+
+        ];
+
+        let sortByName = false;
+        let currentSearch = '';
+
+        const difficultyColors = {
+            'RAV': 'red',
+            'INS': 'white',
+            'MAS': 'purple'
+        };
+
+        function formatLevel(level) {
+            if (level >= 13) {
+                return level === 13 ? '13' : `${level}+`;
+            }
+            return level.toString();
+        }
+
+        function createTagElement(lvTag, difficultyTag) {
+            const color = difficultyColors[difficultyTag];
+            const levelText = formatLevel(lvTag);
+            return `<span class="tag ${color}">${difficultyTag} ${levelText}</span>`;
+        }
+
+        function createPageElement(page) {
+            return `
+                <div class="page-item">
+                    <span class="page-title">${page.title}</span>
+                    <div class="page-tags">
+                        ${createTagElement(page.lvTag, page.difficultyTag)}
+                    </div>
+                </div>
+            `;
+        }
+
+        function groupPages(pages, byName = false) {
+            if (byName) {
+                // 名前の最初の文字でグループ化
+                const grouped = {};
+                pages.forEach(page => {
+                    const firstChar = page.title.charAt(0).toUpperCase();
+                    if (!grouped[firstChar]) {
+                        grouped[firstChar] = [];
+                    }
+                    grouped[firstChar].push(page);
+                });
+                
+                // アルファベット順でソート
+                const sortedKeys = Object.keys(grouped).sort();
+                const result = {};
+                sortedKeys.forEach(key => {
+                    result[key] = grouped[key].sort((a, b) => a.title.localeCompare(b.title));
+                });
+                return result;
+            } else {
+                // タグ別でグループ化
+                const grouped = {};
+                pages.forEach(page => {
+                    const key = formatLevel(page.lvTag);
+                    if (!grouped[key]) {
+                        grouped[key] = [];
+                    }
+                    grouped[key].push(page);
+                });
+                
+                // レベル順でソート
+                const sortedKeys = Object.keys(grouped).sort((a, b) => {
+                    const numA = parseInt(a.replace('+', ''));
+                    const numB = parseInt(b.replace('+', ''));
+                    return numA - numB;
+                });
+                
+                const result = {};
+                sortedKeys.forEach(key => {
+                    result[key] = grouped[key].sort((a, b) => a.title.localeCompare(b.title));
+                });
+                return result;
+            }
+        }
+
+        function renderAccordion(groupedPages) {
+            const mainContent = document.getElementById('mainContent');
+            let html = '';
+
+            Object.entries(groupedPages).forEach(([groupName, pages]) => {
+                html += `
+                    <div class="accordion-item">
+                        <div class="accordion-header" onclick="toggleAccordion(this)">
+                            <span class="accordion-title">${groupName}</span>
+                            <span class="accordion-count">${pages.length}</span>
+                        </div>
+                        <div class="accordion-content">
+                            ${pages.map(page => createPageElement(page)).join('')}
+                        </div>
+                    </div>
+                `;
+            });
+
+            mainContent.innerHTML = html;
+        }
+
+        function renderSearchResults(filteredPages) {
+            const mainContent = document.getElementById('mainContent');
+            
+            if (filteredPages.length === 0) {
+                mainContent.innerHTML = `
+                    <div class="no-results">
+                        <p>検索結果が見つかりませんでした</p>
+                        <button class="clear-search" onclick="clearSearch()">検索をクリア</button>
+                    </div>
+                `;
+                return;
+            }
+
+            let html = `
+                <div class="search-results">
+                    <h3>検索結果 (${filteredPages.length}件) <button class="clear-search" onclick="clearSearch()">検索をクリア</button></h3>
+                    ${filteredPages.map(page => createPageElement(page)).join('')}
+                </div>
+            `;
+
+            mainContent.innerHTML = html;
+        }
+
+        function toggleAccordion(header) {
+            const content = header.nextElementSibling;
+            content.classList.toggle('active');
+        }
+
+        function updateDisplay() {
+            if (currentSearch) {
+                const filteredPages = pages.filter(page => 
+                    page.title.toLowerCase().includes(currentSearch.toLowerCase())
+                );
+                renderSearchResults(filteredPages);
+            } else {
+                const groupedPages = groupPages(pages, sortByName);
+                renderAccordion(groupedPages);
+            }
+        }
+
+        function clearSearch() {
+            currentSearch = '';
+            document.getElementById('searchInput').value = '';
+            updateDisplay();
+        }
+
+        // イベントリスナー
+        document.getElementById('searchInput').addEventListener('input', (e) => {
+            currentSearch = e.target.value;
+            updateDisplay();
+        });
+
+        document.getElementById('sortSwitch').addEventListener('click', () => {
+            const switchEl = document.getElementById('sortSwitch');
+            const labelEl = document.getElementById('sortLabel');
+            
+            sortByName = !sortByName;
+            switchEl.classList.toggle('active');
+            labelEl.textContent = sortByName ? '名前別' : 'タグ別';
+            
+            if (!currentSearch) {
+                updateDisplay();
+            }
+        });
+
+        // 初期表示
+        updateDisplay();
+    </script>
+</body>
+</html>
