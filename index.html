@@ -346,7 +346,7 @@
     </div>
 
     <script>
-        // サンプルデータ
+        //////////////////////////// ここから挿入////////////////////////////////////////////////
         const pages = [
             {
         title: "ミニドラ絵描き唄",
@@ -354,10 +354,8 @@
         difficultyTag: "RAV",
         url: "page/minidora_MAS_16.html"
     },
-        
-
         ];
-
+//////////////////////////////////////////////////////////////////////////////////
         let sortByName = false;
         let currentSearch = '';
 
@@ -368,11 +366,8 @@
         };
 
         function formatLevel(level) {
-            if (level >= 13) {
-                return level === 13 ? '13' : `${level}+`;
-            }
-            return level.toString();
-        }
+    return level.toString();
+}
 
         function createTagElement(lvTag, difficultyTag) {
             const color = difficultyColors[difficultyTag];
@@ -528,6 +523,7 @@ function createPageElement(page) {
     </script>
 </body>
 </html>
+
 
 
 
