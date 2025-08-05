@@ -348,7 +348,12 @@
     <script>
         // サンプルデータ
         const pages = [
-            { title: "ミニドラ絵描き唄", lvTag: 15+, difficultyTag: "RAV", url: "page/minidora_MAS_16.html" }
+            {
+        title: "ミニドラ絵描き唄",
+        lvTag: 16,
+        difficultyTag: "RAV",
+        url: "page/minidora_MAS_16.html"
+    },
         
 
         ];
@@ -375,16 +380,17 @@
             return `<span class="tag ${color}">${difficultyTag} ${levelText}</span>`;
         }
 
-        function createPageElement(page) {
-            return `
-                <div class="page-item">
-                    <span class="page-title">${page.title}</span>
-                    <div class="page-tags">
-                        ${createTagElement(page.lvTag, page.difficultyTag)}
-                    </div>
-                </div>
-            `;
-        }
+function createPageElement(page) {
+    return `
+        <a href="${page.url}" class="page-item" target="_blank" rel="noopener noreferrer">
+            <span class="page-title">${page.title}</span>
+            <div class="page-tags">
+                ${createTagElement(page.lvTag, page.difficultyTag)}
+            </div>
+        </a>
+    `;
+}
+
 
         function groupPages(pages, byName = false) {
             if (byName) {
@@ -522,6 +528,7 @@
     </script>
 </body>
 </html>
+
 
 
 
